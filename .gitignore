@@ -13,6 +13,7 @@ RealEstateCore/appsettings.Development.json
 RealEstateCore/appsettings.json
 RealEstateCore/appsettings.Production.json
 RealEstateCore/Properties/PublishProfiles
+RealEstateCore/Properties/launchSettings.json
 RealEstateCore/RealEstateCore.csproj.user
 
 RealEstateCore.Core/bin/Debug/netstandard2.0
