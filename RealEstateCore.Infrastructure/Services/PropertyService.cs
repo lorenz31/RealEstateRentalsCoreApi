@@ -101,7 +101,7 @@ namespace RealEstateCore.Infrastructure.Services
             }
         }
 
-        public async Task<List<PropertiesDTO>> GetOwnerPropertiesAsync(Guid userid)
+        public async Task<List<PropertiesTermsDTO>> GetOwnerPropertiesAsync(Guid userid)
         {
             try
             {
@@ -111,7 +111,7 @@ namespace RealEstateCore.Infrastructure.Services
 
                     var userId = Guid.Parse(userid.ToString());
 
-                    var properties = await con.QueryAsync<PropertiesDTO>("sp_GetOwnerProperties", new { UserId = userId }, commandType: CommandType.StoredProcedure);
+                    var properties = await con.QueryAsync<PropertiesTermsDTO>("sp_GetOwnerPropertiesWithTerms", new { UserId = userId }, commandType: CommandType.StoredProcedure);
 
                     con.Close();
 

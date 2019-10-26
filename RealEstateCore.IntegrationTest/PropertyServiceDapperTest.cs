@@ -55,9 +55,9 @@ namespace RealEstateCore.IntegrationTest
                 {
                     con.Open();
 
-                    var userId = Guid.Parse("B0B20FA9-E37D-47C7-9C8C-32784F2F3EE7");
+                    var userId = Guid.Parse("1923610F-A467-40F3-8652-773A86DE4314");
 
-                    var properties = await con.QueryAsync<PropertiesDTO>("sp_GetOwnerProperties", new { UserId = userId }, commandType: CommandType.StoredProcedure);
+                    var properties = await con.QueryAsync<PropertiesTermsDTO>("sp_GetOwnerPropertiesWithTerms", new { UserId = userId }, commandType: CommandType.StoredProcedure);
 
                     Assert.IsTrue(properties.AsList().Count > 0);
 
@@ -67,36 +67,6 @@ namespace RealEstateCore.IntegrationTest
             catch (Exception ex)
             {
                 logService.Log("Get Owner Properties", ex.InnerException.Message, ex.Message, ex.StackTrace);
-                Assert.Fail();
-            }
-        }
-
-        [TestMethod]
-        public async Task PropertyService_AddPropertyBulkDapperAsync_Test()
-        {
-            try
-            {
-                using (var con = new SqlConnection(connectionString))
-                {
-                    for (int i = 0; i < 1000; i++)
-                    {
-                        Guid PropertyId = Guid.NewGuid();
-                        Guid UserId = Guid.Parse("10445DB1-C5B0-478A-89F6-613450414ED4");
-                        string Name = $"Test Property {i}";
-                        string Address = $"Test Address {i}";
-                        string City = $"Test City {i}";
-                        string ContactNo = "9632587410";
-                        string Owner = $"Test Owner {i}";
-                        int TotalRooms = 10;
-
-                        var propertyData = @"INSERT INTO RealEstateProperties (Id, UserId, Name, Address, City, ContactNo, Owner, TotalRooms) VALUES (@PropertyID, @UserId, @Name, @Address, @City, @ContactNo, @Owner, @TotalRooms)";
-                        
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logService.Log("Add New Property", ex.InnerException.Message, ex.Message, ex.StackTrace);
                 Assert.Fail();
             }
         }

@@ -69,7 +69,7 @@ namespace RealEstateCore.Controllers
 
             var response = await _propertyService.GetOwnerPropertiesAsync(userId);
 
-            if (response.Count == 0) return null;
+            if (response.Count == 0) return Ok(null);
 
             return Ok(response);
         }
