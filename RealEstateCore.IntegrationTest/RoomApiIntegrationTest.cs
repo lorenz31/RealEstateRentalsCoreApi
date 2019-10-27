@@ -68,21 +68,36 @@ namespace RealEstateCore.IntegrationTest
         }
 
         [TestMethod]
-        public async Task RoomApi_GetRoomTypeAsync_IntegrationTest()
+        public async Task RoomApi_GetRoomTypesAsync_IntegrationTest()
         {
-            var propertyId = Guid.Parse("BCEDAB95-5E70-4A0B-83DC-0053D28A7D8F");
-            var token = await GenerateTokenAsync();
-
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
+            var propertyId = Guid.Parse("6B9A26D3-A043-4007-82AC-02AD91762F45");
 
             try
             {
+                var token = await GenerateTokenAsync();
+
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
+
                 var request = await client.GetAsync($"api/v1/Room/type?propertyid={propertyId}");
                 var response = await request.Content.ReadAsStringAsync();
 
-                var roomTypes = JsonConvert.DeserializeObject<List<RoomTypeModel>>(response);
+                if (request.IsSuccessStatusCode)
+                {
+                    if (!string.IsNullOrEmpty(response))
+                    {
+                        var roomTypes = JsonConvert.DeserializeObject<List<RoomTypeModel>>(response);
 
-                Assert.IsTrue(roomTypes.Count > 0, $"No room type added for {propertyId} property yet.");
+                        Assert.IsTrue(roomTypes.Count > 0);
+                    }
+                    else
+                    {
+                        Assert.Fail($"No room type added for {propertyId} property yet.");
+                    }
+                }
+                else
+                {
+                    Assert.Fail("An error has occurred.");
+                }
             }
             catch (Exception ex)
             {
@@ -316,8 +331,8 @@ namespace RealEstateCore.IntegrationTest
             var user = new UserModel
             {
                 Username = "user1@gmail.com",
-                Password = "user1",
-                ClientId = "webapp"
+                Password = "demo123!",
+                ClientId = "mobileapp"
             };
 
             var payload = new StringContent(

@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data.SqlClient;
+using Dapper;
+using System.Data;
 
 namespace RealEstateCore.Infrastructure.Services
 {
@@ -330,24 +333,31 @@ namespace RealEstateCore.Infrastructure.Services
         {
             try
             {
-                List<IRoomTypeModel> roomType = new List<IRoomTypeModel>();
-
-                var roomTypes = await _db.RoomTypes.Where(r => r.PropertyId == propertyid).ToListAsync();
-
-                if (roomTypes == null || roomTypes.Count == 0) return null;
-
-                foreach (var room in roomTypes)
+                using (var con = new SqlConnection(_config["Database:ConnectionString"]))
                 {
-                    roomType.Add(new RoomTypeModel
-                    {
-                        Id = room.Id,
-                        PropertyId = room.PropertyId,
-                        Type = room.Type,
-                        Price = room.Price
-                    });
-                }
+                    con.Open();
 
-                return roomType;
+                    List<IRoomTypeModel> roomType = new List<IRoomTypeModel>();
+
+                    var roomTypes = await con.QueryAsync<RoomTypeModel>("sp_GetRoomTypesPerProperty", new { PropertyId = propertyid }, commandType: CommandType.StoredProcedure);
+                    
+                    con.Close();
+
+                    if (roomTypes.Count() == 0) return null;
+
+                    foreach (var room in roomTypes)
+                    {
+                        roomType.Add(new RoomTypeModel
+                        {
+                            Id = room.Id,
+                            PropertyId = room.PropertyId,
+                            Type = room.Type,
+                            Price = room.Price
+                        });
+                    }
+
+                    return roomType;
+                }
             }
             catch (Exception ex)
             {

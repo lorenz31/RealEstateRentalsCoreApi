@@ -205,8 +205,8 @@ namespace RealEstateCore.Controllers
 
             var response = await _roomService.GetRoomTypesPerProperty(propertyId);
 
-            if (response.Count == 0)
-                return null;
+            if (response == null)
+                return NoContent();
             else
                 return Ok(response);
         }
