@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using Dapper;
+using System.Data;
 
 namespace RealEstateCore.IntegrationTest
 {
@@ -21,17 +24,16 @@ namespace RealEstateCore.IntegrationTest
         IConfiguration config;
 
         LoggerService logService;
-        
+
+        string connectionString;
+
         DbContextOptionsBuilder<DatabaseContext> dbContextOpt;
 
         [TestInitialize]
         public void Setup()
         {
             config = InitConfiguration();
-            var connectionString = config["Database:ConnectionString"];
-
-            dbContextOpt = new DbContextOptionsBuilder<DatabaseContext>();
-            dbContextOpt.UseSqlServer(connectionString);
+            connectionString = config["Database:ConnectionString"];
 
             logService = new LoggerService();
         }
@@ -554,30 +556,21 @@ namespace RealEstateCore.IntegrationTest
         }
 
         [TestMethod]
-        public async Task RoomService_GetRoomTypesPerPropertyAsync_Test()
+        public async Task RoomService_GetRoomTypesPerPropertyDapperAsync_Test()
         {
             try
             {
-                using (var db = new DatabaseContext(dbContextOpt.Options))
+                using (var con = new SqlConnection(connectionString))
                 {
-                    List<IRoomTypeModel> roomType = new List<IRoomTypeModel>();
-                    var propertyId = Guid.Parse("96F8443D-388E-42B5-BD1E-6CAA72E2ADAF");
+                    con.Open();
 
-                    var roomTypes = await db.RoomTypes.Where(r => r.PropertyId == propertyId).ToListAsync();
+                    var propertyId = Guid.Parse("6B4621F3-7102-4953-8D5F-75F71B1729E6");
 
-                    if (roomTypes == null || roomTypes.Count == 0) Assert.Fail("No room types added yet.");
+                    var roomTypes = await con.QueryAsync<RoomTypeModel>("sp_GetRoomTypesPerProperty", new { PropertyId = propertyId }, commandType: CommandType.StoredProcedure);
 
-                    foreach (var room in roomTypes)
-                    {
-                        roomType.Add(new RoomTypeModel
-                        {
-                            PropertyId = room.PropertyId,
-                            Type = room.Type,
-                            Price = room.Price
-                        });
-                    }
+                    Assert.IsTrue(roomTypes.AsList().Count > 0);
 
-                    Assert.IsNotNull(roomType);
+                    con.Close();
                 }
             }
             catch (Exception ex)
