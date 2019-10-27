@@ -113,7 +113,7 @@ namespace RealEstateCore.IntegrationTest
         [TestMethod]
         public async Task PropertyApi_GetOwnerPropertiesAsync_IntegrationTest()
         {
-            var userId = Guid.Parse("B0B20FA9-E37D-47C7-9C8C-32784F2F3EE7");
+            var userId = Guid.Parse("1923610F-A467-40F3-8652-773A86DE4314");
 
             try
             {
@@ -124,9 +124,16 @@ namespace RealEstateCore.IntegrationTest
                 var request = await client.GetAsync($"api/v1/Property?userId={userId}");
                 var response = await request.Content.ReadAsStringAsync();
 
-                var properties = JsonConvert.DeserializeObject<List<PropertiesDTO>>(response);
+                if (request.IsSuccessStatusCode)
+                {
+                    var properties = JsonConvert.DeserializeObject<List<PropertiesTermsDTO>>(response);
 
-                Assert.IsTrue(properties.Count > 0, "No properties added yet.");
+                    Assert.IsTrue(properties.Count > 0, "No properties added yet.");
+                }
+                else
+                {
+                    Assert.Fail("An error has occurred.");
+                }
             }
             catch (Exception ex)
             {
@@ -138,8 +145,8 @@ namespace RealEstateCore.IntegrationTest
         [TestMethod]
         public async Task PropertyApi_GetPropertyInfoAsync_IntegrationTest()
         {
-            var userId = Guid.Parse("10445DB1-C5B0-478A-89F6-613450414ED4");
-            var propertyId = Guid.Parse("BCEDAB95-5E70-4A0B-83DC-0053D28A7D8F");
+            var userId = Guid.Parse("1923610F-A467-40F3-8652-773A86DE4314");
+            var propertyId = Guid.Parse("6B4621F3-7102-4953-8D5F-75F71B1729E6");
 
             try
             {
@@ -147,12 +154,26 @@ namespace RealEstateCore.IntegrationTest
 
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
 
-                var request = await client.GetAsync($"api/v1/Property/info?userId={userId}&propertyid={propertyId}");
+                var request = await client.GetAsync($"api/v1/Property/info?userid={userId}&propertyid={propertyId}");
                 var response = await request.Content.ReadAsStringAsync();
 
-                var propertyInfo = JsonConvert.DeserializeObject<PropertiesDTO>(response);
+                if (request.IsSuccessStatusCode)
+                {
+                    if (!string.IsNullOrEmpty(response))
+                    {
+                        var propertyInfo = JsonConvert.DeserializeObject<PropertiesDTO>(response);
 
-                Assert.IsNotNull(propertyInfo, "Property doesn't exist.");
+                        Assert.IsNotNull(propertyInfo);
+                    }
+                    else
+                    {
+                        Assert.Fail("Property doesn't exist.");
+                    }
+                }
+                else
+                {
+                    Assert.Fail("An error has occurred.");
+                }
             }
             catch (Exception ex)
             {
@@ -207,8 +228,8 @@ namespace RealEstateCore.IntegrationTest
             var user = new UserModel
             {
                 Username = "user1@gmail.com",
-                Password = "user1",
-                ClientId = "webapp"
+                Password = "demo123!",
+                ClientId = "mobileapp"
             };
 
             var payload = new StringContent(

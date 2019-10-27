@@ -12,7 +12,7 @@ namespace RealEstateCore.Core.Services
         Task<IResponseModel> AddPropertyAsync(IPropertyModel model);
         Task<IResponseModel> AddPropertyTermsAsync(IPropertyTermsModel model);
         Task<List<PropertiesTermsDTO>> GetOwnerPropertiesAsync(Guid userid);
-        Task<PropertiesDTO> GetPropertyInfoAsync(Guid userid, Guid propertyid);
+        Task<PropertiesTermsDTO> GetPropertyInfoAsync(Guid userid, Guid propertyid);
         Task<IResponseModel> UpdatePropertyInfoAsync(IPropertyModel model);
     }
 }

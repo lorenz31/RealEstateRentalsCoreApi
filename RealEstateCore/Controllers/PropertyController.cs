@@ -83,7 +83,7 @@ namespace RealEstateCore.Controllers
 
             var response = await _propertyService.GetPropertyInfoAsync(userId, propertyId);
 
-            if (response == null) return null;
+            if (response == null) return NoContent();
 
             return Ok(response);
         }

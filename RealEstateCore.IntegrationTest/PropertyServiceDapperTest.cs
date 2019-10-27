@@ -70,6 +70,32 @@ namespace RealEstateCore.IntegrationTest
                 Assert.Fail();
             }
         }
+
+        [TestMethod]
+        public async Task PropertyService_GetPropertyInfoDapperAsync_Test()
+        {
+            try
+            {
+                using (var con = new SqlConnection(connectionString))
+                {
+                    con.Open();
+
+                    var userId = Guid.Parse("1923610F-A467-40F3-8652-773A86DE4314");
+                    var propertyId = Guid.Parse("6B4621F3-7102-4953-8D5F-75F71B1729E6");
+
+                    var properties = await con.QueryAsync<PropertiesTermsDTO>("sp_GetPropertyInfo", new { UserId = userId, PropertyId = propertyId }, commandType: CommandType.StoredProcedure);
+
+                    Assert.IsTrue(properties.AsList().Count == 1);
+
+                    con.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                logService.Log("Get Owner Properties", ex.InnerException.Message, ex.Message, ex.StackTrace);
+                Assert.Fail();
+            }
+        }
         #endregion
     }
 }

@@ -126,27 +126,20 @@ namespace RealEstateCore.Infrastructure.Services
             }
         }
 
-        public async Task<PropertiesDTO> GetPropertyInfoAsync(Guid userid, Guid propertyid)
+        public async Task<PropertiesTermsDTO> GetPropertyInfoAsync(Guid userid, Guid propertyid)
         {
             try
             {
-                var property = await _db.RealEstateProperties
-                    .AsNoTracking()
-                    .Select(p => new PropertiesDTO
-                    {
-                        Id = p.Id,
-                        UserId = p.UserId,
-                        Name = p.Name,
-                        Address = p.Address,
-                        City = p.City,
-                        ContactNo = p.ContactNo,
-                        Owner = p.Owner,
-                        TotalRooms = p.TotalRooms
-                    })
-                    .Where(p => p.UserId == userid && p.Id == propertyid)
-                    .SingleOrDefaultAsync();
+                using (var con = new SqlConnection(_config["Database:ConnectionString"]))
+                {
+                    con.Open();
 
-                return property ?? null;
+                    var properties = await con.QueryAsync<PropertiesTermsDTO>("sp_GetPropertyInfo", new { UserId = userid, PropertyId = propertyid }, commandType: CommandType.StoredProcedure);
+                    
+                    con.Close();
+
+                    return properties.SingleOrDefault() ?? null;
+                }
             }
             catch (Exception ex)
             {
