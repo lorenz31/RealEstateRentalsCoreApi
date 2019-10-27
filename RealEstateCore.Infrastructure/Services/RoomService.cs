@@ -73,34 +73,16 @@ namespace RealEstateCore.Infrastructure.Services
         {
             try
             {
-                var properties = await _db.RealEstateProperties
-                    .AsNoTracking()
-                    .Join(
-                        _db.Rooms,
-                        property => property.Id,
-                        room => room.PropertyId,
-                        (prop, room) => new { prop, room }
-                    )
-                    .Join(
-                        _db.RoomTypes,
-                        rooms => rooms.room.RoomTypeId,
-                        roomtype => roomtype.Id,
-                        (rooms, roomtype) => new { rooms, roomtype }
-                    )
-                    .Where(p => p.rooms.prop.UserId == userid && p.rooms.prop.Id == propertyid)
-                    .Select(p => new RoomsListInfoDTO
-                    {
-                        UserId = p.rooms.prop.UserId,
-                        PropertyId = p.rooms.prop.Id,
-                        PropertyName = p.rooms.prop.Name,
-                        RoomId = p.rooms.room.Id,
-                        RoomName = p.rooms.room.Name,
-                        RoomTypeName = p.roomtype.Type,
-                        TotalBeds = p.rooms.room.TotalBeds
-                    })
-                    .ToListAsync();
+                using (var con = new SqlConnection(_config["Database:ConnectionString"]))
+                {
+                    con.Open();
+                    
+                    var roomList = await con.QueryAsync<RoomsListInfoDTO>("sp_GetRoomsPerProperty", new { UserId = userid, PropertyId = propertyid }, commandType: CommandType.StoredProcedure);
 
-                return properties ?? null;
+                    con.Close();
+
+                    return roomList.ToList() ?? null;
+                }
             }
             catch (Exception ex)
             {

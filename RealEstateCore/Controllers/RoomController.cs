@@ -49,11 +49,7 @@ namespace RealEstateCore.Controllers
         [Route("list")]
         public async Task<IActionResult> GetRoomsPerPropertyAsync([FromQuery] string userid, [FromQuery] string propertyid)
         {
-            if (string.IsNullOrEmpty(userid)) return BadRequest("User Id is required.");
-
-            if (string.IsNullOrEmpty(propertyid)) return BadRequest("Property Id is required.");
-
-            if (string.IsNullOrEmpty(userid) && string.IsNullOrEmpty(propertyid)) return BadRequest("User Id and Property Id is required.");
+            if (string.IsNullOrEmpty(userid) || string.IsNullOrEmpty(propertyid)) return BadRequest("User Id/Property Id is required.");
 
             var userId = Guid.Parse(userid);
             var propertyId = Guid.Parse(propertyid);
@@ -61,7 +57,7 @@ namespace RealEstateCore.Controllers
             var response = await _roomService.GetRoomsPerPropertyAsync(userId, propertyId);
 
             if (response.Count == 0)
-                return null;
+                return BadRequest(new ResponseModel { Status = false, Message = "No rooms added yet" });
             else
                 return Ok(response);
         }
