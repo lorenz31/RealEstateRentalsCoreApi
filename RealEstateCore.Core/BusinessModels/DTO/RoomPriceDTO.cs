@@ -6,6 +6,7 @@ namespace RealEstateCore.Core.BusinessModels.DTO
     {
         public Guid RoomId { get; set; }
         public string RoomName { get; set; }
+        public string RoomType { get; set; }
         public decimal Price { get; set; }
     }
 }

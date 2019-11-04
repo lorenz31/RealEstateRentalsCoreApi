@@ -185,8 +185,8 @@ namespace RealEstateCore.IntegrationTest
         [TestMethod]
         public async Task RoomApi_GetRoomsWithPricesAsync_IntegrationTest()
         {
-            var userdId = Guid.Parse("10445DB1-C5B0-478A-89F6-613450414ED4");
-            var propertyId = Guid.Parse("BCEDAB95-5E70-4A0B-83DC-0053D28A7D8F");
+            var userdId = Guid.Parse("1923610F-A467-40F3-8652-773A86DE4314");
+            var propertyId = Guid.Parse("45639725-C992-4DE2-875D-EAB4D567A02E");
             var token = await GenerateTokenAsync();
 
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
@@ -196,9 +196,18 @@ namespace RealEstateCore.IntegrationTest
                 var request = await client.GetAsync($"api/v1/Room/prices?userid={userdId}&propertyid={propertyId}");
                 var response = await request.Content.ReadAsStringAsync();
 
-                var rooms = JsonConvert.DeserializeObject<List<RoomPriceDTO>>(response);
+                if (request.IsSuccessStatusCode)
+                {
+                    var rooms = JsonConvert.DeserializeObject<List<RoomPriceDTO>>(response);
 
-                Assert.IsTrue(rooms.Count > 0, "Error occurred while getting room prices");
+                    Assert.IsTrue(rooms.Count > 0);
+                }
+                else
+                {
+                    var resp = JsonConvert.DeserializeObject<ResponseModel>(response);
+
+                    Assert.Fail(resp.Message);
+                }
             }
             catch (Exception ex)
             {

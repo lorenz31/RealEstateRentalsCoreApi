@@ -277,6 +277,32 @@ namespace RealEstateCore.IntegrationTest
         }
 
         [TestMethod]
+        public async Task RoomService_GetRoomsWithPricesDapperAsync_Test()
+        {
+            try
+            {
+                using (var con = new SqlConnection(connectionString))
+                {
+                    con.Open();
+
+                    var userId = Guid.Parse("1923610F-A467-40F3-8652-773A86DE4314");
+                    var propertyId = Guid.Parse("07F676DE-3D58-4850-9AA9-2820E0C01B88");
+
+                    var roomPrices = await con.QueryAsync<RoomPriceDTO>("sp_GetRoomsWithPrices", new { UserId = userId, PropertyId = propertyId }, commandType: CommandType.StoredProcedure);
+
+                    Assert.IsTrue(roomPrices.AsList().Count > 0);
+
+                    con.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                logService.Log("Get Rooms With Prices", ex.InnerException.Message, ex.Message, ex.StackTrace);
+                Assert.Fail();
+            }
+        }
+
+        [TestMethod]
         public async Task RoomService_GetRoomInfoAsync_Test()
         {
             try
