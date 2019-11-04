@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Threading.Tasks;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace RealEstateCore
 {
@@ -77,6 +78,11 @@ namespace RealEstateCore
                         options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
                     );
 
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info { Title = "RealEstate API", Version = "v1" });
+            });
+
             services.AddTransient<IResponseModel, ResponseModel>();
             services.AddTransient<IUserModel, UserModel>();
             
@@ -102,6 +108,12 @@ namespace RealEstateCore
             app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseMvc();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "RealEstate API V1");
+            });
         }
     }
 }
