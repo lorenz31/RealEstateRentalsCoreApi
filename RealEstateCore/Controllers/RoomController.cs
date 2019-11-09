@@ -49,7 +49,7 @@ namespace RealEstateCore.Controllers
         [Route("list")]
         public async Task<IActionResult> GetRoomsPerPropertyAsync([FromQuery] string userid, [FromQuery] string propertyid)
         {
-            if (string.IsNullOrEmpty(userid) || string.IsNullOrEmpty(propertyid)) return BadRequest("User Id/Property Id is required.");
+            if (string.IsNullOrEmpty(userid) || string.IsNullOrEmpty(propertyid)) return BadRequest(new ResponseModel { Status = false, Message = "User Id/Property Id is required." });
 
             var userId = Guid.Parse(userid);
             var propertyId = Guid.Parse(propertyid);
@@ -83,13 +83,8 @@ namespace RealEstateCore.Controllers
         [Route("info")]
         public async Task<IActionResult> GetRoomInfoAsync([FromQuery] string userid, [FromQuery] string propertyid, [FromQuery] string roomid)
         {
-            if (string.IsNullOrEmpty(userid)) return BadRequest("User Id is required.");
-
-            if (string.IsNullOrEmpty(propertyid)) return BadRequest("Property Id is required.");
-
-            if (string.IsNullOrEmpty(roomid)) return BadRequest("Room Id is required.");
-
-            if (string.IsNullOrEmpty(userid) && string.IsNullOrEmpty(propertyid) && string.IsNullOrEmpty(roomid)) return BadRequest("User Id, Property Id and Room Id is required.");
+            if (string.IsNullOrEmpty(userid) || string.IsNullOrEmpty(propertyid) || string.IsNullOrEmpty(roomid))
+                return BadRequest(new ResponseModel { Status = false, Message = "User Id, Property Id and Room Id is required." });
 
             var userId = Guid.Parse(userid);
             var propertyId = Guid.Parse(propertyid);
@@ -100,20 +95,15 @@ namespace RealEstateCore.Controllers
             if (roomInfo != null)
                 return Ok(roomInfo);
             else
-                return NoContent();
+                return BadRequest(new ResponseModel { Status = false, Message = "Room info not added yet." });
         }
 
         [HttpGet]
         [Route("available")]
         public async Task<IActionResult> GetAvailableBedsPerRoomAsync([FromQuery] string userid, [FromQuery] string propertyid, [FromQuery] string roomid)
         {
-            if (string.IsNullOrEmpty(userid)) return BadRequest("User Id is required.");
-
-            if (string.IsNullOrEmpty(propertyid)) return BadRequest("Property Id is required.");
-
-            if (string.IsNullOrEmpty(roomid)) return BadRequest("Room Id is required.");
-
-            if (string.IsNullOrEmpty(userid) && string.IsNullOrEmpty(propertyid) && string.IsNullOrEmpty(roomid)) return BadRequest("User Id, Property Id and Room Id is required.");
+            if (string.IsNullOrEmpty(userid) || string.IsNullOrEmpty(propertyid) || string.IsNullOrEmpty(roomid))
+                return BadRequest(new ResponseModel { Status = false, Message = "User Id, Property Id and Room Id is required." });
 
             var args = new AvailableBedsModel
             {
@@ -127,7 +117,7 @@ namespace RealEstateCore.Controllers
             if (availableBeds != null)
                 return Ok(availableBeds);
             else
-                return BadRequest();
+                return BadRequest(new ResponseModel { Status = false, Message = "No available beds." });
         }
         #endregion
 

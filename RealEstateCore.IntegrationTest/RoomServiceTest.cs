@@ -35,6 +35,9 @@ namespace RealEstateCore.IntegrationTest
             config = InitConfiguration();
             connectionString = config["Database:ConnectionString"];
 
+            dbContextOpt = new DbContextOptionsBuilder<DatabaseContext>();
+            dbContextOpt.UseSqlServer(connectionString);
+
             logService = new LoggerService();
         }
 
@@ -309,9 +312,9 @@ namespace RealEstateCore.IntegrationTest
             {
                 using (var db = new DatabaseContext(dbContextOpt.Options))
                 {
-                    var userId = Guid.Parse("AC087774-4D7C-47CA-A926-373D9A6C580A");
-                    var propertyId = Guid.Parse("96F8443D-388E-42B5-BD1E-6CAA72E2ADAF");
-                    var roomId = Guid.Parse("A2037E8C-3518-4007-AA32-6B2960390503");
+                    var userId = Guid.Parse("1923610F-A467-40F3-8652-773A86DE4314");
+                    var propertyId = Guid.Parse("03EF7E92-AC36-4A45-9574-AC149371EF05");
+                    var roomId = Guid.Parse("7B84F3D3-24FB-4EFF-91C4-48A9D47F2C5D");
 
                     var roomInfo = await db.RealEstateProperties
                         .AsNoTracking()
@@ -409,7 +412,7 @@ namespace RealEstateCore.IntegrationTest
             {
                 using (var db = new DatabaseContext(dbContextOpt.Options))
                 {
-                    var propertyId = Guid.Parse("673F8BED-9909-4667-B546-014406B530A0");
+                    var propertyId = Guid.Parse("03EF7E92-AC36-4A45-9574-AC149371EF05");
 
                     var rooms = await db.Rooms
                         .Where(p => p.PropertyId == propertyId)
@@ -465,7 +468,7 @@ namespace RealEstateCore.IntegrationTest
             {
                 using (var db = new DatabaseContext(dbContextOpt.Options))
                 {
-                    var propertyId = Guid.Parse("673F8BED-9909-4667-B546-014406B530A0");
+                    var propertyId = Guid.Parse("03EF7E92-AC36-4A45-9574-AC149371EF05");
 
                     var rooms = await db.Rooms
                         .Where(p => p.PropertyId == propertyId)

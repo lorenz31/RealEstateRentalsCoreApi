@@ -32,7 +32,7 @@ namespace RealEstateCore
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowSpecificOrigin", builder => builder.AllowAnyOrigin()//.WithOrigins("http://localhost:4200", "http://localhost:81/apitest/api.php")
+                options.AddPolicy("AllowSpecificOrigin", builder => builder.AllowAnyOrigin()
                                                                            .AllowAnyMethod()
                                                                            .AllowAnyHeader()
                                                                            .AllowCredentials());

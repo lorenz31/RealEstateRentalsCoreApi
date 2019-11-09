@@ -219,9 +219,9 @@ namespace RealEstateCore.IntegrationTest
         [TestMethod]
         public async Task RoomApi_GetRoomInfoAsync_IntegrationTest()
         {
-            var userdId = Guid.Parse("10445DB1-C5B0-478A-89F6-613450414ED4");
-            var propertyId = Guid.Parse("BCEDAB95-5E70-4A0B-83DC-0053D28A7D8F");
-            var roomId = Guid.Parse("C909DDE0-97BF-49C9-976B-DCE398E533FF");
+            var userdId = Guid.Parse("1923610F-A467-40F3-8652-773A86DE4314");
+            var propertyId = Guid.Parse("03EF7E92-AC36-4A45-9574-AC149371EF05");
+            var roomId = Guid.Parse("7B84F3D3-24FB-4EFF-91C4-48A9D47F2C5D");
             var token = await GenerateTokenAsync();
 
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
@@ -231,9 +231,18 @@ namespace RealEstateCore.IntegrationTest
                 var request = await client.GetAsync($"api/v1/Room/info?userid={userdId}&propertyid={propertyId}&roomid={roomId}");
                 var response = await request.Content.ReadAsStringAsync();
 
-                var roomInfo = JsonConvert.DeserializeObject<RoomInfoDTO>(response);
+                if (request.IsSuccessStatusCode)
+                {
+                    var roomInfo = JsonConvert.DeserializeObject<RoomInfoDTO>(response);
 
-                Assert.IsNotNull(roomInfo, "Error occurred while getting room info");
+                    Assert.IsNotNull(roomInfo);
+                }
+                else
+                {
+                    var resp = JsonConvert.DeserializeObject<ResponseModel>(response);
+
+                    Assert.Fail(resp.Message);
+                }
             }
             catch (Exception ex)
             {
@@ -351,7 +360,7 @@ namespace RealEstateCore.IntegrationTest
             {
                 Username = "user1@gmail.com",
                 Password = "demo123!",
-                ClientId = "mobileapp"
+                ClientId = "webapp"
             };
 
             var payload = new StringContent(
