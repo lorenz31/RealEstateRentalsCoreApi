@@ -57,9 +57,18 @@ namespace RealEstateCore.IntegrationTest
                 var request = await client.PostAsync("api/v1/Room/type/add", payload);
                 var response = await request.Content.ReadAsStringAsync();
 
-                var content = JsonConvert.DeserializeObject<ResponseModel>(response);
+                if (request.IsSuccessStatusCode)
+                {
+                    var content = JsonConvert.DeserializeObject<ResponseModel>(response);
 
-                Assert.IsTrue(content.Status, "Error occurred while adding room type");
+                    Assert.IsTrue(content.Status);
+                }
+                else
+                {
+                    var resp = JsonConvert.DeserializeObject<ResponseModel>(response);
+
+                    Assert.Fail(resp.Message);
+                }
             }
             catch (Exception ex)
             {
@@ -71,33 +80,28 @@ namespace RealEstateCore.IntegrationTest
         [TestMethod]
         public async Task RoomApi_GetRoomTypesAsync_IntegrationTest()
         {
-            var propertyId = Guid.Parse("6B9A26D3-A043-4007-82AC-02AD91762F45");
+            var propertyId = Guid.Parse("03EF7E92-AC36-4A45-9574-AC149371EF05");
+
+            var token = await GenerateTokenAsync();
+
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
 
             try
             {
-                var token = await GenerateTokenAsync();
-
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
-
                 var request = await client.GetAsync($"api/v1/Room/type?propertyid={propertyId}");
                 var response = await request.Content.ReadAsStringAsync();
 
                 if (request.IsSuccessStatusCode)
                 {
-                    if (!string.IsNullOrEmpty(response))
-                    {
-                        var roomTypes = JsonConvert.DeserializeObject<List<RoomTypeModel>>(response);
+                    var roomTypes = JsonConvert.DeserializeObject<List<RoomTypeModel>>(response);
 
-                        Assert.IsTrue(roomTypes.Count > 0);
-                    }
-                    else
-                    {
-                        Assert.Fail($"No room type added for {propertyId} property yet.");
-                    }
+                    Assert.IsTrue(roomTypes.Count > 0);
                 }
                 else
                 {
-                    Assert.Fail("An error has occurred.");
+                    var resp = JsonConvert.DeserializeObject<ResponseModel>(response);
+
+                    Assert.Fail($"No room type added for {propertyId} property yet.");
                 }
             }
             catch (Exception ex)

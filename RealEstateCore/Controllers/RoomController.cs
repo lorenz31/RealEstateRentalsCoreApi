@@ -181,14 +181,14 @@ namespace RealEstateCore.Controllers
         [Route("type")]
         public async Task<IActionResult> GetRoomTypeAsync([FromQuery] string propertyid)
         {
-            if (string.IsNullOrEmpty(propertyid)) return BadRequest("Property Id is required.");
+            if (string.IsNullOrEmpty(propertyid)) return BadRequest(new ResponseModel { Status = false, Message = "Property Id is required." });
 
             var propertyId = Guid.Parse(propertyid);
 
             var response = await _roomService.GetRoomTypesPerProperty(propertyId);
 
             if (response == null)
-                return NoContent();
+                return BadRequest(new ResponseModel { Status = false, Message = "No room types added yet." });
             else
                 return Ok(response);
         }
