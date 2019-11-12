@@ -141,9 +141,18 @@ namespace RealEstateCore.IntegrationTest
                 var request = await client.PostAsync("api/v1/Room/add", payload);
                 var response = await request.Content.ReadAsStringAsync();
 
-                var content = JsonConvert.DeserializeObject<ResponseModel>(response);
+                if (request.IsSuccessStatusCode)
+                {
+                    var content = JsonConvert.DeserializeObject<ResponseModel>(response);
 
-                Assert.IsTrue(content.Status, "Error occurred while adding room");
+                    Assert.IsTrue(content.Status, "Error occurred while adding room");
+                }
+                else
+                {
+                    var resp = JsonConvert.DeserializeObject<ResponseModel>(response);
+
+                    Assert.Fail(resp.Message);
+                }
             }
             catch (Exception ex)
             {
@@ -307,10 +316,19 @@ namespace RealEstateCore.IntegrationTest
             {
                 var request = await client.PostAsync("api/v1/Room/features/add", payload);
                 var response = await request.Content.ReadAsStringAsync();
+                
+                if (request.IsSuccessStatusCode)
+                {
+                    var content = JsonConvert.DeserializeObject<ResponseModel>(response);
 
-                var content = JsonConvert.DeserializeObject<ResponseModel>(response);
+                    Assert.IsTrue(content.Status);
+                }
+                else
+                {
+                    var resp = JsonConvert.DeserializeObject<ResponseModel>(response);
 
-                Assert.IsTrue(content.Status, "Error occurred while adding room feature");
+                    Assert.Fail(resp.Message);
+                }
             }
             catch (Exception ex)
             {
@@ -346,9 +364,18 @@ namespace RealEstateCore.IntegrationTest
                 var request = await client.PostAsync("api/v1/Room/floorplan/add", payload);
                 var response = await request.Content.ReadAsStringAsync();
 
-                var content = JsonConvert.DeserializeObject<ResponseModel>(response);
+                if (request.IsSuccessStatusCode)
+                {
+                    var content = JsonConvert.DeserializeObject<ResponseModel>(response);
 
-                Assert.IsTrue(content.Status, "Error occurred while adding room floor plan");
+                    Assert.IsTrue(content.Status);
+                }
+                else
+                {
+                    var resp = JsonConvert.DeserializeObject<ResponseModel>(response);
+
+                    Assert.Fail(resp.Message);
+                }
             }
             catch (Exception ex)
             {
