@@ -31,7 +31,7 @@ namespace RealEstateCore.IntegrationTest
         [TestMethod]
         public async Task RenterApi_AddRenterAsync_IntegrationTest()
         {
-            var propertyId = Guid.Parse("BCEDAB95-5E70-4A0B-83DC-0053D28A7D8F");
+            var propertyId = Guid.Parse("6B4621F3-7102-4953-8D5F-75F71B1729E6");
             var token = await GenerateTokenAsync();
 
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
@@ -70,7 +70,7 @@ namespace RealEstateCore.IntegrationTest
         [TestMethod]
         public async Task RenterApi_GetRentersPerPropertyAsync_IntegrationTest()
         {
-            var propertyId = Guid.Parse("582BA6FC-0E65-441D-AD1A-4193BF8FC38B");
+            var propertyId = Guid.Parse("6B4621F3-7102-4953-8D5F-75F71B1729E6");
             var token = await GenerateTokenAsync();
 
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");

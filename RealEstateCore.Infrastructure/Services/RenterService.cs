@@ -10,6 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.Data.SqlClient;
+using Dapper;
+using System.Data;
 
 namespace RealEstateCore.Infrastructure.Services
 {
@@ -69,18 +72,16 @@ namespace RealEstateCore.Infrastructure.Services
         {
             try
             {
-                var renters = await _db.Renter
-                    .Where(p => p.PropertyId == propertyid)
-                    .Select(r => new RenterListDTO
-                    {
-                        Name = r.Name,
-                        ContactNo = r.ContactNo,
-                        Profession = r.Profession,
-                        PropertyId = r.PropertyId
-                    })
-                    .ToListAsync();
+                using (var con = new SqlConnection(_config["Database:ConnectionString"]))
+                {
+                    con.Open();
 
-                return renters ?? null;
+                    var renters = await con.QueryAsync<RenterListDTO>("sp_GetRentersPerProperty", new { PropertyId = propertyid }, commandType: CommandType.StoredProcedure);
+
+                    con.Close();
+
+                    return renters.AsList() ?? null;
+                }
             }
             catch (Exception ex)
             {

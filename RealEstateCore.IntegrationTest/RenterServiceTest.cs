@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using Dapper;
+using System.Data;
 
 namespace RealEstateCore.IntegrationTest
 {
@@ -21,13 +24,15 @@ namespace RealEstateCore.IntegrationTest
 
         LoggerService logService;
 
+        string connectionString;
+
         DbContextOptionsBuilder<DatabaseContext> dbContextOpt;
 
         [TestInitialize]
         public void Setup()
         {
             config = InitConfiguration();
-            var connectionString = config["Database:ConnectionString"];
+            connectionString = config["Database:ConnectionString"];
 
             dbContextOpt = new DbContextOptionsBuilder<DatabaseContext>();
             dbContextOpt.UseSqlServer(connectionString);
@@ -48,7 +53,7 @@ namespace RealEstateCore.IntegrationTest
                         ContactNo = "9876543210",
                         Address = "General Maxilom Avenue",
                         Profession = "Front Desk",
-                        PropertyId = Guid.Parse("582BA6FC-0E65-441D-AD1A-4193BF8FC38B")
+                        PropertyId = Guid.Parse("6B4621F3-7102-4953-8D5F-75F71B1729E6")
                     };
 
                     var renter = new Renter
@@ -124,21 +129,17 @@ namespace RealEstateCore.IntegrationTest
         {
             try
             {
-                using (var db = new DatabaseContext(dbContextOpt.Options))
+                using (var con = new SqlConnection(config["Database:ConnectionString"]))
                 {
-                    var propertyId = Guid.Parse("582BA6FC-0E65-441D-AD1A-4193BF8FC38B");
-                    var renters = await db.Renter
-                        .Where(p => p.PropertyId == propertyId)
-                        .Select(r => new RenterListDTO
-                        {
-                            Name = r.Name,
-                            ContactNo = r.ContactNo,
-                            Profession = r.Profession,
-                            PropertyId = r.PropertyId
-                        })
-                        .ToListAsync();
+                    con.Open();
 
-                    Assert.IsTrue(renters.Count > 0, "No renters added yet.");
+                    var propertyId = Guid.Parse("6B4621F3-7102-4953-8D5F-75F71B1729E6");
+
+                    var renters = await con.QueryAsync<RenterListDTO>("sp_GetRentersPerProperty", new { PropertyId = propertyId }, commandType: CommandType.StoredProcedure);
+
+                    Assert.IsTrue(renters.Count() > 0);
+
+                    con.Close();
                 }
             }
             catch (Exception ex)
@@ -148,31 +149,31 @@ namespace RealEstateCore.IntegrationTest
             }
         }
 
-        [TestMethod]
-        public async Task RenterService_AssignRenterRoomAsync_Test()
-        {
-            try
-            {
-                //using (var db = new DatabaseContext(dbContextOpt.Options))
-                //{
-                //    var assignRoom = new RoomRented
-                //    {
-                //        RenterId = Guid.Parse("2AC48057-8D5D-4C5A-8B1F-05464C62CEED"),
-                //        RoomId = Guid.Parse("61110F4B-E943-4A51-A264-FC58C8ADD008")
-                //    };
+        //[TestMethod]
+        //public async Task RenterService_AssignRenterRoomAsync_Test()
+        //{
+        //    try
+        //    {
+        //        using (var db = new DatabaseContext(dbContextOpt.Options))
+        //        {
+        //            var assignRoom = new RoomRented
+        //            {
+        //                RenterId = Guid.Parse("2AC48057-8D5D-4C5A-8B1F-05464C62CEED"),
+        //                RoomId = Guid.Parse("61110F4B-E943-4A51-A264-FC58C8ADD008")
+        //            };
 
-                //    db.RoomsRented.Add(assignRoom);
-                //    var result = await db.SaveChangesAsync();
+        //            db.RoomsRented.Add(assignRoom);
+        //            var result = await db.SaveChangesAsync();
 
-                //    Assert.IsTrue(result == 1);
-                //}
-            }
-            catch (Exception ex)
-            {
-                logService.Log("Assign Room To Renter", ex.InnerException.Message, ex.Message, ex.StackTrace);
-                Assert.Fail();
-            }
-        }
+        //            Assert.IsTrue(result == 1);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        logService.Log("Assign Room To Renter", ex.InnerException.Message, ex.Message, ex.StackTrace);
+        //        Assert.Fail();
+        //    }
+        //}
 
         private static IConfiguration InitConfiguration()
         {
