@@ -91,6 +91,7 @@ namespace RealEstateCore
             services.AddSingleton<IPropertyService, PropertyService>();
             services.AddSingleton<IRenterService, RenterService>();
             services.AddSingleton<IRoomService, RoomService>();
+            services.AddSingleton<ITransactionService, TransactionService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
