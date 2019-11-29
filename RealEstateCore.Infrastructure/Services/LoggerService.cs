@@ -9,7 +9,7 @@ namespace RealEstateCore.Infrastructure.Services
     {
         public void Log(string feature, string innerex, string message, string stacktrace)
         {
-            var logFilePath = @"D:\Repository\RealEstateCoreApi\RealEstateCore\Logs\";
+            var logFilePath = @"D:\Repository\RealEstateRentalsCoreApi\RealEstateCore\Logs\";
             var filename = "Log_" + Guid.NewGuid().ToString().Replace("-", "") + DateTime.UtcNow.ToString().Replace(" ", "").Replace("/", "").Replace(":", "");
             var filepath = Path.Combine(logFilePath + filename + ".txt");
 

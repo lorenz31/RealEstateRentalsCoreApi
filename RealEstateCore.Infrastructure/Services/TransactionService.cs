@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using Dapper;
+using System.Data;
 
 namespace RealEstateCore.Infrastructure.Services
 {
@@ -34,77 +37,64 @@ namespace RealEstateCore.Infrastructure.Services
 
         public async Task<IResponseModel> AddCheckInTransactionAsync(ICheckinModel model)
         {
-            try
+            using (var con = new SqlConnection(_config["Database:ConnectionString"]))
             {
-                var renterInfo = await _db.Renter
-                        .Where(r => r.PropertyId == model.PropertyId && r.Id == model.RenterId)
-                        .Select(r => r)
-                        .SingleOrDefaultAsync();
-
-                var selectedRoom = await _db.RealEstateProperties
-                    .AsNoTracking()
-                    .Join(
-                        _db.Rooms,
-                        property => property.Id,
-                        room => room.PropertyId,
-                        (prop, room) => new { prop, room }
-                    )
-                    .Join(
-                        _db.RoomTypes,
-                        rooms => rooms.room.RoomTypeId,
-                        roomtype => roomtype.Id,
-                        (rooms, roomtype) => new { rooms, roomtype }
-                    )
-                    .Where(
-                        p => p.rooms.prop.UserId == model.UserId &&
-                        p.rooms.prop.Id == model.PropertyId &&
-                        p.rooms.room.Id == model.RoomId
-                    )
-                    .Select(p => new RoomPriceDTO
-                    {
-                        RoomId = p.rooms.room.Id,
-                        RoomName = p.rooms.room.Name,
-                        Price = p.roomtype.Price
-                    })
-                    .SingleOrDefaultAsync();
-
-                var terms = _db.Settings
-                    .Where(p => p.PropertyId == model.PropertyId)
-                    .Select(p => new { term = p.MonthAdvance + p.MonthDeposit })
-                    .SingleOrDefault();
-
-                var checkIn = DateTime.Now;
-                renterInfo.CheckIn = checkIn;
-
-                _db.Renter.Update(renterInfo);
-                var renterInfoUpdated = await _db.SaveChangesAsync();
-
-                if (renterInfoUpdated == 1)
+                try
                 {
-                    await ComputeTransactionAsync(_db, selectedRoom.Price, (int)terms.term, (decimal)model.DownPayment, checkIn, model.RenterId);
-                    await AssignRoomAsync(_db, model.RenterId, model.RoomId);
+                    con.Open();
 
-                    _response.Status = true;
+                    var renterInfo = await con.QueryAsync<RenterInfoDTO>("sp_GetRenterInfo", new { PropertyId = model.PropertyId, RenterId = model.RenterId }, commandType: CommandType.StoredProcedure);
+
+                    var selectedRoom = await con.QueryAsync<RoomPriceDTO>("sp_GetRoomInfo", new { UserId = model.UserId, PropertyId = model.PropertyId }, commandType: CommandType.StoredProcedure);
+
+                    var terms = await con.QueryAsync<decimal>("sp_GetPropertyTerms", new { PropertyId = model.PropertyId }, commandType: CommandType.StoredProcedure);
+
+                    con.Close();
+
+                    var checkIn = DateTime.Now;
+                    renterInfo.FirstOrDefault().CheckIn = checkIn;
+
+                    _db.Renter.Update(new Renter
+                    {
+                        Id = renterInfo.FirstOrDefault().Id,
+                        Name = renterInfo.FirstOrDefault().Name,
+                        ContactNo = renterInfo.FirstOrDefault().ContactNo,
+                        Address = renterInfo.FirstOrDefault().Address,
+                        Profession = renterInfo.FirstOrDefault().Profession,
+                        CheckIn = renterInfo.FirstOrDefault().CheckIn,
+                        CheckOut = renterInfo.FirstOrDefault().CheckOut,
+                        PropertyId = renterInfo.FirstOrDefault().PropertyId
+                    });
+
+                    var renterInfoUpdated = await _db.SaveChangesAsync();
+
+                    if (renterInfoUpdated == 1)
+                    {
+                        await ComputeTransactionAsync(_db, selectedRoom.FirstOrDefault().Price, (int)terms.FirstOrDefault(), (decimal)model.DownPayment, checkIn, model.RenterId);
+                        await AssignRoomAsync(_db, model.RenterId, model.RoomId);
+
+                        _response.Status = true;
+                        _response.Message = "";
+
+                        return _response;
+                    }
+                    else
+                    {
+                        _response.Status = false;
+                        _response.Message = "Error updating renter info.";
+
+                        return _response;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _loggerService.Log("Renter Checkin", ex.InnerException.Message, ex.Message, ex.StackTrace);
+
+                    _response.Status = false;
                     _response.Message = "";
 
                     return _response;
                 }
-                else
-                {
-                    _response.Status = false;
-                    _response.Message = "Error updating renter info.";
-
-                    return _response;
-                }
-            }
-            catch (Exception ex)
-            {
-                _loggerService.Log("Renter Checkin", ex.InnerException.Message, ex.Message, ex.StackTrace);
-
-                _response.Status = false;
-                _response.Message = "";
-
-                return _response;
             }
         }
 

@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using Dapper;
+using System.Data;
 
 namespace RealEstateCore.IntegrationTest
 {
@@ -21,14 +24,16 @@ namespace RealEstateCore.IntegrationTest
 
         LoggerService logService;
 
+        string connectionString;
+        
         DbContextOptionsBuilder<DatabaseContext> dbContextOpt;
 
         [TestInitialize]
         public void Setup()
         {
             config = InitConfiguration();
-            var connectionString = config["Database:ConnectionString"];
-
+            connectionString = config["Database:ConnectionString"];
+            
             dbContextOpt = new DbContextOptionsBuilder<DatabaseContext>();
             dbContextOpt.UseSqlServer(connectionString);
 
@@ -38,62 +43,47 @@ namespace RealEstateCore.IntegrationTest
         [TestMethod]
         public async Task TransactionService_AddCheckInTransactionAsync_Test()
         {
-            try
+            var userId = Guid.Parse("1923610F-A467-40F3-8652-773A86DE4314");
+            var propertyId = Guid.Parse("6B4621F3-7102-4953-8D5F-75F71B1729E6");
+            var roomId = Guid.Parse("D054BDF9-6AD8-41A6-B56C-63F1A0829208");
+            var renterId = Guid.Parse("7C9C5B77-379F-4B02-95FC-A8D60959D110");
+            var downPayment = 6000;
+
+            using (var db = new DatabaseContext(dbContextOpt.Options))
+            using (var con = new SqlConnection(connectionString))
             {
-                var userId = Guid.Parse("AC087774-4D7C-47CA-A926-373D9A6C580A");
-                var propertyId = Guid.Parse("D95FF806-C50A-4A54-A476-02D350B2C6FA");
-                var roomId = Guid.Parse("61110F4B-E943-4A51-A264-FC58C8ADD008");
-                var renterId = Guid.Parse("2AC48057-8D5D-4C5A-8B1F-05464C62CEED");
-                var downPayment = 6000;
-
-                using (var db = new DatabaseContext(dbContextOpt.Options))
+                try
                 {
-                    var renterInfo = await db.Renter
-                        .Where(r => r.PropertyId == propertyId && r.Id == renterId)
-                        .Select(r => r)
-                        .SingleOrDefaultAsync();
+                    con.Open();
 
-                    var selectedRoom = await db.RealEstateProperties
-                        .AsNoTracking()
-                        .Join(
-                            db.Rooms,
-                            property => property.Id,
-                            room => room.PropertyId,
-                            (prop, room) => new { prop, room }
-                        )
-                        .Join(
-                            db.RoomTypes,
-                            rooms => rooms.room.RoomTypeId,
-                            roomtype => roomtype.Id,
-                            (rooms, roomtype) => new { rooms, roomtype }
-                        )
-                        .Where(
-                            p => p.rooms.prop.UserId == userId &&
-                            p.rooms.prop.Id == propertyId &&
-                            p.rooms.room.Id == roomId
-                        )
-                        .Select(p => new RoomPriceDTO
-                        {
-                            RoomId = p.rooms.room.Id,
-                            RoomName = p.rooms.room.Name,
-                            Price = p.roomtype.Price
-                        })
-                        .SingleOrDefaultAsync();
+                    var renterInfo = await con.QueryAsync<RenterInfoDTO>("sp_GetRenterInfo", new { PropertyId = propertyId, RenterId = renterId }, commandType: CommandType.StoredProcedure);
 
-                    var terms = db.Settings
-                        .Where(p => p.PropertyId == propertyId)
-                        .Select(p => new { term = p.MonthAdvance + p.MonthDeposit })
-                        .SingleOrDefault();
+                    var selectedRoom = await con.QueryAsync<RoomPriceDTO>("sp_GetRoomInfo", new { UserId = userId, PropertyId = propertyId }, commandType: CommandType.StoredProcedure);
+
+                    var terms = await con.QueryAsync<decimal>("sp_GetPropertyTerms", new { PropertyId = propertyId }, commandType: CommandType.StoredProcedure);
+
+                    con.Close();
 
                     var checkIn = DateTime.Now;
-                    renterInfo.CheckIn = checkIn;
+                    renterInfo.FirstOrDefault().CheckIn = checkIn;
 
-                    db.Renter.Update(renterInfo);
+                    db.Renter.Update(new Renter
+                    {
+                        Id = renterInfo.FirstOrDefault().Id,
+                        Name = renterInfo.FirstOrDefault().Name,
+                        ContactNo = renterInfo.FirstOrDefault().ContactNo,
+                        Address = renterInfo.FirstOrDefault().Address,
+                        Profession = renterInfo.FirstOrDefault().Profession,
+                        CheckIn = renterInfo.FirstOrDefault().CheckIn,
+                        CheckOut = renterInfo.FirstOrDefault().CheckOut,
+                        PropertyId = renterInfo.FirstOrDefault().PropertyId
+                    });
+
                     var renterInfoUpdated = await db.SaveChangesAsync();
 
                     if (renterInfoUpdated == 1)
                     {
-                        await ComputeTransactionAsync(db, selectedRoom.Price, (int)terms.term, downPayment, checkIn, renterId);
+                        await ComputeTransactionAsync(db, selectedRoom.FirstOrDefault().Price, (int)terms.FirstOrDefault(), downPayment, checkIn, renterId);
                         await AssignRoomAsync(db, renterId, roomId);
 
                         Assert.IsTrue(renterInfoUpdated == 1, "Error updating renter checkin info.");
@@ -103,11 +93,11 @@ namespace RealEstateCore.IntegrationTest
                         Assert.Fail("Error updating renter checkin info.");
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                logService.Log("Renter Checkin", ex.InnerException.Message, ex.Message, ex.StackTrace);
-                Assert.Fail();
+                catch (Exception ex)
+                {
+                    logService.Log("Renter Checkin", ex.InnerException.Message, ex.Message, ex.StackTrace);
+                    Assert.Fail();
+                }
             }
         }
 
@@ -280,7 +270,7 @@ namespace RealEstateCore.IntegrationTest
                 DaysBeforeDue = daysBeforeDue,
                 RenterId = renterid
             };
-
+            
             db.Transactions.Add(transaction);
             await db.SaveChangesAsync();
         }
@@ -292,7 +282,7 @@ namespace RealEstateCore.IntegrationTest
                 RenterId = renterid,
                 RoomId = roomid
             };
-
+            
             db.RoomsRented.Add(assignRoom);
             await db.SaveChangesAsync();
         }
