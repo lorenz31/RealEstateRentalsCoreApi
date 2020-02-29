@@ -1,5 +1,7 @@
 ﻿using RealEstateCore.Infrastructure.DataContext;
 using RealEstateCore.Infrastructure.Services;
+using RealEstateCore.Infrastructure.Repository;
+using RealEstateCore.Core.Repository;
 using RealEstateCore.Core.BusinessModels.Interface;
 using RealEstateCore.Core.BusinessModels.Implementation;
 using RealEstateCore.Core.Services;
@@ -73,7 +75,7 @@ namespace RealEstateCore
                     });
 
             services.AddMvc()
-                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                     .AddJsonOptions(
                         options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
                     );
@@ -85,6 +87,7 @@ namespace RealEstateCore
 
             services.AddTransient<IResponseModel, ResponseModel>();
             services.AddTransient<IUserModel, UserModel>();
+            services.AddTransient<IRepository, Repository>();
             
             services.AddSingleton<ILoggerService, LoggerService>();
             services.AddSingleton<IAccountService, AccountService>();
