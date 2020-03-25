@@ -26,10 +26,6 @@ namespace RealEstateCore
                 .UseKestrel()
                 .UseIISIntegration()
                 .UseStartup<Startup>()
-                .ConfigureKestrel((context, options) =>
-                {
-                    // Set properties and call methods on options
-                })
                 .Build();
 
             host.Run();

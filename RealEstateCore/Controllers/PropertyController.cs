@@ -76,7 +76,7 @@ namespace RealEstateCore.Controllers
 
         [HttpGet]
         [Route("info")]
-        public async Task<IActionResult> GetPropertyInfoAsync([FromQuery] string userid, string propertyid)
+        public async Task<IActionResult> GetPropertyInfoAsync([FromQuery] string userid, [FromQuery] string propertyid)
         {
             var userId = Guid.Parse(userid);
             var propertyId = Guid.Parse(propertyid);
