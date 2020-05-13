@@ -105,15 +105,9 @@ namespace RealEstateCore.Infrastructure.Services
             }
         }
 
-        public async Task<List<PropertiesTermsDTO>> GetOwnerPropertiesAsync(Guid userid)
-        {
-            return await _repo.GetOwnerPropertiesAsync(userid) ?? null;
-        }
+        public async Task<List<PropertiesTermsDTO>> GetOwnerPropertiesAsync(Guid userid) => await _repo.GetOwnerPropertiesAsync(userid) ?? null;
 
-        public async Task<PropertiesTermsDTO> GetPropertyInfoAsync(Guid userid, Guid propertyid)
-        {
-            return await _repo.GetPropertyInfoAsync(userid, propertyid) ?? null;
-        }
+        public async Task<PropertiesTermsDTO> GetPropertyInfoAsync(Guid userid, Guid propertyid) => await _repo.GetPropertyInfoAsync(userid, propertyid) ?? null;
 
         public async Task<IResponseModel> UpdatePropertyInfoAsync(IPropertyModel model)
         {

@@ -10,6 +10,7 @@ namespace RealEstateCore.Core.BusinessModels.DTO
         public Guid RoomId { get; set; }
         public string RoomName { get; set; }
         public string RoomTypeName { get; set; }
+        public decimal Price { get; set; }
         public int TotalBeds { get; set; }
     }
 }

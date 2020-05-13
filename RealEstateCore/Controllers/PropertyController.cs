@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using System;
 using Microsoft.AspNetCore.Cors;
+using RealEstateCore.Filters;
 
 namespace RealEstateCore.Controllers
 {
@@ -63,15 +64,23 @@ namespace RealEstateCore.Controllers
 
         [HttpGet]
         [Route("")]
-        public async Task<IActionResult> GetOwnerPropertiesAsync([FromQuery] string userid)
+        [ServiceFilter(typeof(UserIdFilter))]
+        public async Task<IActionResult> GetOwnerPropertiesAsync([FromQuery] Guid userid)
         {
-            var userId = Guid.Parse(userid);
+            var ids = HttpContext.Items;
 
-            var response = await _propertyService.GetOwnerPropertiesAsync(userId);
+            if (ids.ContainsKey("uid"))
+            {
+                Guid userId = (Guid)HttpContext.Items["uid"];
 
-            if (response.Count == 0) return Ok(null);
+                var response = await _propertyService.GetOwnerPropertiesAsync(userId);
 
-            return Ok(response);
+                if (response.Count == 0) return NoContent();
+
+                return Ok(response);
+            }
+
+            return NoContent();
         }
 
         [HttpGet]

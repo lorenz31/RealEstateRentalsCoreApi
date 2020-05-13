@@ -57,7 +57,7 @@ namespace RealEstateCore.Controllers
             var response = await _roomService.GetRoomsPerPropertyAsync(userId, propertyId);
 
             if (response.Count == 0)
-                return BadRequest(new ResponseModel { Status = false, Message = "No rooms added yet" });
+                return NoContent();
             else
                 return Ok(response);
         }
@@ -74,7 +74,7 @@ namespace RealEstateCore.Controllers
             var response = await _roomService.GetRoomsWithPricesAsync(userId, propertyId);
 
             if (response.Count == 0)
-                return BadRequest(new ResponseModel { Status = false, Message = "Room prices have not been added yet." });
+                return NoContent();
             else
                 return Ok(response);
         }
@@ -138,6 +138,22 @@ namespace RealEstateCore.Controllers
             else
                 return BadRequest(_responseModel);
         }
+
+        [HttpGet]
+        [Route("features")]
+        public async Task<IActionResult> GetRoomFeaturesAsync([FromQuery] string propertyid)
+        {
+            if (string.IsNullOrEmpty(propertyid)) return BadRequest(new ResponseModel { Status = false, Message = "Property Id is required." });
+
+            var propertyId = Guid.Parse(propertyid);
+
+            var response = await _roomService.GetRoomFeaturesAsync(propertyId);
+
+            if (response == null)
+                return NoContent();
+            else
+                return Ok(response);
+        }
         #endregion
 
         #region Room Floor Plan Endpoints
@@ -185,10 +201,10 @@ namespace RealEstateCore.Controllers
 
             var propertyId = Guid.Parse(propertyid);
 
-            var response = await _roomService.GetRoomTypesPerProperty(propertyId);
+            var response = await _roomService.GetRoomTypesPerPropertyAsync(propertyId);
 
             if (response == null)
-                return BadRequest(new ResponseModel { Status = false, Message = "No room types added yet." });
+                return NoContent();
             else
                 return Ok(response);
         }

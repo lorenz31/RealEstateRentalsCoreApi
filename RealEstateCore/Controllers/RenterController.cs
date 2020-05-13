@@ -53,9 +53,9 @@ namespace RealEstateCore.Controllers
             var renters = await _renterService.GetRentersPerPropertyAsync(propertyId);
 
             if (renters.Count == 0)
-                return Ok(new ResponseModel { Status = false, Message = "No renters added yet." });
-
-            return Ok(renters);
+                return NoContent();
+            else
+                return Ok(renters);
         }
     }
 }

@@ -6,6 +6,7 @@ using RealEstateCore.Core.BusinessModels.Interface;
 using RealEstateCore.Core.BusinessModels.Implementation;
 using RealEstateCore.Core.Services;
 using RealEstateCore.Core.Security.Implementation;
+using RealEstateCore.Filters;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -84,6 +85,8 @@ namespace RealEstateCore
             {
                 c.SwaggerDoc("v1", new Info { Title = "RealEstate API", Version = "v1" });
             });
+
+            services.AddScoped<UserIdFilter>();
 
             services.AddTransient<IResponseModel, ResponseModel>();
             services.AddTransient<IUserModel, UserModel>();

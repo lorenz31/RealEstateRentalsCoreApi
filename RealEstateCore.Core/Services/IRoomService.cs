@@ -1,4 +1,5 @@
 ﻿using RealEstateCore.Core.BusinessModels.DTO;
+using RealEstateCore.Core.BusinessModels.Implementation;
 using RealEstateCore.Core.BusinessModels.Interface;
 
 using System;
@@ -19,6 +20,7 @@ namespace RealEstateCore.Core.Services
 
         #region Room Features
         Task<IResponseModel> AddRoomFeatureAsync(IRoomFeaturesModel model);
+        Task<List<RoomFeaturesDTO>> GetRoomFeaturesAsync(Guid propertyid);
         #endregion
 
         #region Room Floor Plan
@@ -27,7 +29,7 @@ namespace RealEstateCore.Core.Services
 
         #region Room Types
         Task<IResponseModel> AddRoomTypesAsync(IRoomTypeModel model);
-        Task<List<IRoomTypeModel>> GetRoomTypesPerProperty(Guid propertyid);
+        Task<List<RoomTypeModel>> GetRoomTypesPerPropertyAsync(Guid propertyid);
         #endregion
     }
 }

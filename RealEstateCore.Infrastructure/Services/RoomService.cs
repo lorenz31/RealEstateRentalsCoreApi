@@ -1,8 +1,9 @@
 ﻿using RealEstateCore.Core.BusinessModels.Interface;
+using RealEstateCore.Core.BusinessModels.Implementation;
+using RealEstateCore.Core.BusinessModels.DTO;
 using RealEstateCore.Core.Services;
 using RealEstateCore.Core.Models;
-using RealEstateCore.Core.BusinessModels.DTO;
-using RealEstateCore.Core.BusinessModels.Implementation;
+using RealEstateCore.Core.Repository;
 using RealEstateCore.Infrastructure.DataContext;
 
 using Microsoft.EntityFrameworkCore;
@@ -20,17 +21,20 @@ namespace RealEstateCore.Infrastructure.Services
     public class RoomService : IRoomService
     {
         private readonly DatabaseContext _db;
+        private IRepository _repo;
         private readonly IConfiguration _config;
         private readonly IResponseModel _response;
         private readonly ILoggerService _loggerService;
 
         public RoomService(
             DatabaseContext db,
+            IRepository repo,
             IConfiguration config,
             IResponseModel response,
             ILoggerService loggerService)
         {
             _db = db;
+            _repo = repo;
             _config = config;
             _response = response;
             _loggerService = loggerService;
@@ -69,51 +73,9 @@ namespace RealEstateCore.Infrastructure.Services
             }
         }
 
-        public async Task<List<RoomsListInfoDTO>> GetRoomsPerPropertyAsync(Guid userid, Guid propertyid)
-        {
-            try
-            {
-                using (var con = new SqlConnection(_config["Database:ConnectionString"]))
-                {
-                    con.Open();
-                    
-                    var roomList = await con.QueryAsync<RoomsListInfoDTO>("sp_GetRoomsPerProperty", new { UserId = userid, PropertyId = propertyid }, commandType: CommandType.StoredProcedure);
+        public async Task<List<RoomsListInfoDTO>> GetRoomsPerPropertyAsync(Guid userid, Guid propertyid) => await _repo.GetRoomsPerPropertyAsync(userid, propertyid) ?? null;
 
-                    con.Close();
-
-                    return roomList.ToList() ?? null;
-                }
-            }
-            catch (Exception ex)
-            {
-                _loggerService.Log("Get Rooms Per Property", ex.InnerException.Message, ex.Message, ex.StackTrace);
-
-                return null;
-            }
-        }
-
-        public async Task<List<RoomPriceDTO>> GetRoomsWithPricesAsync(Guid userid, Guid propertyid)
-        {
-            try
-            {
-                using (var con = new SqlConnection(_config["Database:ConnectionString"]))
-                {
-                    con.Open();
-
-                    var roomPrices = await con.QueryAsync<RoomPriceDTO>("sp_GetRoomsWithPrices", new { UserId = userid, PropertyId = propertyid }, commandType: CommandType.StoredProcedure);
-                    
-                    con.Close();
-
-                    return roomPrices.ToList() ?? null;
-                }
-            }
-            catch (Exception ex)
-            {
-                _loggerService.Log("Get Rooms With Prices", ex.InnerException.Message, ex.Message, ex.StackTrace);
-
-                return null;
-            }
-        }
+        public async Task<List<RoomPriceDTO>> GetRoomsWithPricesAsync(Guid userid, Guid propertyid) => await _repo.GetRoomsWithPricesAsync(userid, propertyid);
 
         public async Task<RoomInfoDTO> GetRoomInfoAsync(Guid userid, Guid propertyid, Guid roomid)
         {
@@ -230,6 +192,8 @@ namespace RealEstateCore.Infrastructure.Services
                 return _response;
             }
         }
+
+        public async Task<List<RoomFeaturesDTO>> GetRoomFeaturesAsync(Guid propertyid) => await _repo.GetRoomFeaturesAsync(propertyid) ?? null;
         #endregion
 
         #region Room Floor Plan
@@ -296,43 +260,7 @@ namespace RealEstateCore.Infrastructure.Services
             }
         }
 
-        public async Task<List<IRoomTypeModel>> GetRoomTypesPerProperty(Guid propertyid)
-        {
-            try
-            {
-                using (var con = new SqlConnection(_config["Database:ConnectionString"]))
-                {
-                    con.Open();
-
-                    List<IRoomTypeModel> roomType = new List<IRoomTypeModel>();
-
-                    var roomTypes = await con.QueryAsync<RoomTypeModel>("sp_GetRoomTypesPerProperty", new { PropertyId = propertyid }, commandType: CommandType.StoredProcedure);
-                    
-                    con.Close();
-
-                    if (roomTypes.Count() == 0) return null;
-
-                    foreach (var room in roomTypes)
-                    {
-                        roomType.Add(new RoomTypeModel
-                        {
-                            Id = room.Id,
-                            PropertyId = room.PropertyId,
-                            Type = room.Type,
-                            Price = room.Price
-                        });
-                    }
-
-                    return roomType;
-                }
-            }
-            catch (Exception ex)
-            {
-                _loggerService.Log("Get Property Room Types", ex.InnerException.Message, ex.Message, ex.StackTrace);
-
-                return null;
-            }
-        }
+        public async Task<List<RoomTypeModel>> GetRoomTypesPerPropertyAsync(Guid propertyid) => await _repo.GetRoomTypesPerPropertyAsync(propertyid) ?? null;
         #endregion
     }
 }
